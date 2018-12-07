@@ -84,6 +84,7 @@ with tf.Session() as sess:
         sess.run(train_init)	# drawing samples from train_data
         total_loss = 0
         n_batches = 0
+        i = 5
         try:
             while True:
                 _, l = sess.run([optimizer, loss])
