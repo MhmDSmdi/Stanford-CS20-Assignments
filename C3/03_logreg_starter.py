@@ -66,7 +66,7 @@ loss = tf.reduce_mean(entropy)
 # Step 6: define optimizer
 # using Adamn Optimizer with pre-defined learning rate to minimize loss
 optimizer = None
-optimizer = tf.train.AdamOptimizer(learning_rate=0.01,).minimize(loss)
+optimizer = tf.train.AdamOptimizer(learning_rate=0.01).minimize(loss)
 
 
 # Step 7: calculate accuracy with test set
@@ -76,7 +76,6 @@ accuracy = tf.reduce_sum(tf.cast(correct_preds, tf.float32))
 
 # writer = tf.summary.FileWriter('./graphs/logreg', tf.get_default_graph())
 with tf.Session() as sess:
-   
     start_time = time.time()
     sess.run(tf.global_variables_initializer())
 
