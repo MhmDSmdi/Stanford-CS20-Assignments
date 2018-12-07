@@ -1,19 +1,9 @@
-""" Starter code for simple logistic regression model for MNIST
-with tf.data module
-MNIST dataset: yann.lecun.com/exdb/mnist/
-Created by Chip Huyen (chiphuyen@cs.stanford.edu)
-CS20: "TensorFlow for Deep Learning Research"
-cs20.stanford.edu
-Lecture 03
-"""
 import os
-os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
-
 import numpy as np
 import tensorflow as tf
 import time
-
 import utils
+os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
 
 # Define paramaters for the model
 learning_rate = 0.01
@@ -23,7 +13,7 @@ n_train = 60000
 n_test = 10000
 
 # Step 1: Read in data
-mnist_folder = 'data/mnist'
+mnist_folder = ''
 utils.download_mnist(mnist_folder)
 train, val, test = utils.read_mnist(mnist_folder, flatten=True)
 
@@ -35,9 +25,9 @@ train_data = train_data.batch(batch_size)
 
 # create testing Dataset and batch it
 test_data = None
-#############################
-########## TO DO ############
-#############################
+test_data = tf.data.Dataset.from_tensor_slices(test)
+test_data = test_data.batch(batch_size)
+
 
 
 # create one iterator and initialize it with different datasets
@@ -54,34 +44,29 @@ test_init = iterator.make_initializer(test_data)	# initializer for train_data
 # shape of w depends on the dimension of X and Y so that Y = tf.matmul(X, w)
 # shape of b depends on Y
 w, b = None, None
-#############################
-########## TO DO ############
-#############################
+w = tf.get_variable("weight", shape=(784, 10), initializer=tf.random_normal_initializer(0, 0.01))
+b = tf.get_variable("bias", shape=(1, 10), initializer=tf.zeros_initializer())
 
 
 # Step 4: build model
 # the model that returns the logits.
 # this logits will be later passed through softmax layer
 logits = None
-#############################
-########## TO DO ############
-#############################
+logits = tf.matmul(img, w) + b
+
 
 
 # Step 5: define loss function
 # use cross entropy of softmax of logits as the loss function
 loss = None
-#############################
-########## TO DO ############
-#############################
+entropy = tf.nn.softmax_cross_entropy_with_logits(labels=label, logits=logits)
+loss = tf.reduce_mean(entropy)
 
 
 # Step 6: define optimizer
 # using Adamn Optimizer with pre-defined learning rate to minimize loss
 optimizer = None
-#############################
-########## TO DO ############
-#############################
+optimizer = tf.train.AdamOptimizer(learning_rate=0.01,).minimize(loss)
 
 
 # Step 7: calculate accuracy with test set
@@ -89,7 +74,7 @@ preds = tf.nn.softmax(logits)
 correct_preds = tf.equal(tf.argmax(preds, 1), tf.argmax(label, 1))
 accuracy = tf.reduce_sum(tf.cast(correct_preds, tf.float32))
 
-writer = tf.summary.FileWriter('./graphs/logreg', tf.get_default_graph())
+# writer = tf.summary.FileWriter('./graphs/logreg', tf.get_default_graph())
 with tf.Session() as sess:
    
     start_time = time.time()
@@ -121,4 +106,4 @@ with tf.Session() as sess:
         pass
 
     print('Accuracy {0}'.format(total_correct_preds/n_test))
-writer.close()
+# writer.close()

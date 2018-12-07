@@ -47,6 +47,7 @@ with tf.Session() as sess:
     sess.run(b.initializer)
     sess.run(w2.initializer)
     sess.run(b2.initializer)
+
     for i in range(100):
         total_loss1 = 0
         total_loss2 = 0
