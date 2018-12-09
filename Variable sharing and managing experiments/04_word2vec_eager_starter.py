@@ -7,9 +7,9 @@ import tensorflow as tf
 import tensorflow.contrib.eager as tfe
 
 import utils
+import word2vec_utils
 
-
-tf.enable_eager_execution()
+tfe.enable_eager_execution()
 
 # Model hyperparameters
 VOCAB_SIZE = 50000
@@ -39,8 +39,13 @@ class Word2Vec(object):
         self.nce_bias = tfe.Variable(tf.zeros([vocab_size]))
 
     def compute_loss(self, center_words, target_words):
-        embed = tf.nn.embedding_lookup(self.embed_matrix, center_words, 'embed')
-        loss = tf.nn.nce_loss(self.nce_weight, self.nce_bias, target_words, inputs=embed, num_sampled=self.num_sampled, num_classes=self.vocab_size)
+        embed = tf.nn.embedding_lookup(self.embed_matrix, center_words)
+        loss = tf.reduce_mean(tf.nn.nce_loss(weights=self.nce_weight,
+                                             biases=self.nce_bias,
+                                             labels=target_words,
+                                             inputs=embed,
+                                             num_sampled=self.num_sampled,
+                                             num_classes=self.vocab_size))
         return loss
 
 
@@ -56,20 +61,16 @@ def main():
                                               tf.TensorShape([BATCH_SIZE, 1])))
     optimizer = tf.train.GradientDescentOptimizer(LEARNING_RATE)
     model = Word2Vec(vocab_size=VOCAB_SIZE, embed_size=EMBED_SIZE)
-
-    # Create the gradients function, using `tfe.implicit_value_and_gradients`
-    grad_fn = tfe.implicit_value_and_gradients(model.compute_loss())
-
+    grad_fn = tfe.implicit_value_and_gradients(model.compute_loss)
     total_loss = 0.0  # for average loss in the last SKIP_STEP steps
     num_train_steps = 0
     while num_train_steps < NUM_TRAIN_STEPS:
         for center_words, target_words in tfe.Iterator(dataset):
             if num_train_steps >= NUM_TRAIN_STEPS:
                 break
-
-            # Compute the loss and gradients, and take an optimization step.
             loss_batch, grads = grad_fn(center_words, target_words)
             total_loss += loss_batch
+            optimizer.apply_gradients(grads)
             if (num_train_steps + 1) % SKIP_STEP == 0:
                 print('Average loss at step {}: {:5.1f}'.format(
                     num_train_steps, total_loss / SKIP_STEP))
